@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import numpy as np
 
 
@@ -50,6 +51,8 @@ class UNET_Model(nn.Module):
         for i in range(0, len(self.decoder_path), 2):
             x = self.decoder_path[i](x) # upsample the image, which will then be concatenated to the horizontal connection from the left side of the 'U'
             connection = horizontal_connections[i//2]
+            if x.shape != connection.shape:
+                x = F.interpolate(x, size=connection.shape[2:])
             concatenated = torch.cat((connection, x), dim=1)
             x = self.decoder_path[i+1](concatenated) # run the concatenated result through the conv block
         
