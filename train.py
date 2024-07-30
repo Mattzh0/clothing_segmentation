@@ -32,6 +32,9 @@ def train(model, loss_fn, optimizer, data_loader):
         model.train()
 
         pred = model(X)
+
+        print(f"Prediction Shape: {pred.shape} | Target Shape: {y.shape}")
+
         loss = loss_fn(pred, y)
         optimizer.zero_grad()
         loss.backward()
@@ -49,10 +52,8 @@ if __name__ == '__main__':
     val_dataset = dataset.SegmentationDataset(img_dir, dataset.val_img_list, mask_dir, dataset.val_mask_list, transformations=transforms)
     test_dataset = dataset.SegmentationDataset(img_dir, dataset.test_img_list, mask_dir, dataset.test_mask_list, transformations=transforms)
 
-    train_dl = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=3)
-    val_dl = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=3)
+    train_dl = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=1, pin_memory=True)
+    val_dl = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=1, pin_memory=True)
     
-    # for batch, (X,y) in enumerate(val_dl):
-        # print((X.shape,y.shape))
     for epoch in range(EPOCHS):
         train(model, loss_fn, optimizer, train_dl)

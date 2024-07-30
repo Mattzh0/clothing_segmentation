@@ -32,7 +32,7 @@ class SegmentationDataset(Dataset):
     def __getitem__(self, index):
         img = np.array(Image.open(os.path.join(self.img_dir, self.img_list[index])).convert('RGB'))
         mask = np.array(Image.open(os.path.join(self.mask_dir, self.mask_list[index])).convert('L'))
-        mask[mask == 255] = 1
+        mask = np.clip(mask, 0, 58)
 
         if self.transformations:
             transformed = self.transformations(image=img, mask=mask)
