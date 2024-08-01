@@ -38,5 +38,7 @@ class SegmentationDataset(Dataset):
             transformed = self.transformations(image=img, mask=mask)
             img = transformed['image']
             mask = transformed['mask']
+
+        img = img.float() / 255.0
         return img, mask
 
