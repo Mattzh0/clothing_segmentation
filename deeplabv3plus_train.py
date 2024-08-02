@@ -16,7 +16,7 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 LR = 0.001
 BATCH_SIZE = 4
-EPOCHS = 15
+EPOCHS = 12
 
 transforms = A.Compose([
     A.Resize(height=416, width=288),
@@ -108,36 +108,7 @@ if __name__ == '__main__':
     for epoch in range(EPOCHS):
         train(model, loss_fn, optimizer, train_dl, val_dl)
     test(model, loss_fn, optimizer, test_dl)
-    
-    # get a sample from the test dataset
-    sample_image, sample_mask = test_dataset[0]
 
-    # add the batch dimension to the sample image
-    sample_image_batch = sample_image.unsqueeze(0).to(device)
-
-    model.eval()
-    with torch.no_grad():
-        predicted_mask = model(sample_image_batch)
-    predicted_mask = torch.argmax(predicted_mask, dim=1)
-
-    # remove the batch dimension and move the tensors to CPU
-    predicted_mask = predicted_mask.squeeze(0).cpu()
-    sample_image = sample_image.cpu()
-    sample_mask = sample_mask.cpu()
-
-    # plot the images
-    fig, ax = plt.subplots(1, 3, figsize=(15, 5))
-
-    ax[0].imshow(sample_image.permute(1, 2, 0))
-    ax[0].set_title('Original Image')
-
-    ax[1].imshow(sample_mask, cmap='gray')
-    ax[1].set_title('Ground Truth Mask')
-
-    ax[2].imshow(predicted_mask, cmap='gray')
-    ax[2].set_title('Predicted Mask')
-
-    plt.show()
-
-    torch.save(model.state_dict(), 'trained_deeplabv3plus_model.pth')
-
+    print("Saving the model...")
+    torch.save(model.state_dict(), 'models/trained_deeplabv3plus_model.pth')
+    print("Model saved successfully.")
