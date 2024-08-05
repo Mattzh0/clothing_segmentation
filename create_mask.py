@@ -84,7 +84,6 @@ def generate_shades(predicted_mask):
 
 def invert_mask_zero():
     mask_zero_path = r'shades\shade_0.png'
-    img = Image.open(mask_zero_path)
     img_array = np.array(Image.open(mask_zero_path))
 
     # create image with the same dimensions as the mask
@@ -103,11 +102,41 @@ def invert_mask_zero():
     img_path = os.path.join('inverted_mask', 'inverted_mask_zero.png')
     inverted_image.save(img_path)
 
-def apply_original_colors():
-    pass
+def apply_original_colors(sample_image):
+    inverted_mask_path = r'inverted_mask\inverted_mask_zero.png'
+    inverted_mask_array = np.array(Image.open(inverted_mask_path))
+
+    # convert tensor to a numpy array and make sure the dimensions are in correct order for NumPy and PIL
+    sample_image_array = sample_image.permute(1, 2, 0).numpy()
+
+    # normalize if needed
+    if sample_image_array.max() <= 1.0:
+        sample_image_array = sample_image_array * 255
+
+    # convert image to RGBA by adding an alpha channel
+    sample_image_rgba = np.zeros((sample_image_array.shape[0], sample_image_array.shape[1], 4))
+    sample_image_rgba[..., :3] = sample_image_array
+    sample_image_rgba[..., 3] = 255  # alpha channel is set to fully opaque, so that the original colors are fully visible
+
+    height, width, _ = sample_image_rgba.shape
+    colored_image = Image.new('RGBA', (width, height), (0, 0, 0, 0))
+    colored_array = np.array(colored_image)
+
+    for i in range(height):
+        for j in range(width):
+            if np.array_equal(inverted_mask_array[i, j], [0, 0, 0, 255]):
+                colored_array[i, j] = [0, 0, 0, 0]
+            if np.array_equal(inverted_mask_array[i, j], [0, 0, 0, 255]):
+                colored_array[i, j] = sample_image_rgba[i,j]
+
+    colored_image = Image.fromarray(colored_array, 'RGBA')
+
+    img_path = os.path.join('colored_mask', 'colored_mask.png')
+    colored_image.save(img_path)
 
 if __name__ == '__main__':
     sample_image, sample_mask, predicted_mask = get_test_sample(test_dataset, 3)
     generate_shades(predicted_mask)
     plot_images(sample_image, sample_mask, predicted_mask)
     invert_mask_zero()
+    apply_original_colors(sample_image)
